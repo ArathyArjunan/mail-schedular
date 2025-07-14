@@ -134,10 +134,32 @@
       }
     });
 
-    function logout() {
-      localStorage.removeItem('access');
-      localStorage.removeItem('refresh');
+    async function logout() {
+  const refresh = localStorage.getItem('refresh');
+  if (!refresh) return;
+
+  try {
+    const response = await fetch('/api/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ refresh })
+    });
+
+    if (!response.ok) {
+      throw new Error('Logout failed');
     }
+
+    localStorage.removeItem('access');
+    localStorage.removeItem('refresh');
+    alert('Logged out successfully!');
+    window.location.href = '/';  // Or wherever your login page is
+
+  } catch (err) {
+    alert('Error during logout: ' + err.message);
+  }
+}
 
     document.addEventListener('DOMContentLoaded', fetchUserData);
   </script>
