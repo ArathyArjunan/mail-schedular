@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Schedule Email</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+    <h2 class="text-2xl font-bold text-center mb-6">📧 Schedule an Email</h2>
+
+    <form id="emailForm" class="space-y-4">
+      <input type="text" id="recipients" class="w-full p-2 border rounded" placeholder="Recipients (comma separated)" required>
+      <input type="text" id="subject" class="w-full p-2 border rounded" placeholder="Subject" required>
+      <textarea id="body" class="w-full p-2 border rounded" rows="4" placeholder="Email Body" required></textarea>
+      <input type="datetime-local" id="scheduledTime" class="w-full p-2 border rounded" required>
+
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Schedule</button>
+      <button type="button" onclick="window.location.href='/view-emails.html'" class="w-full bg-gray-300 text-gray-700 py-2 rounded hover:bg-gray-400 mt-2">View Emails</button>
+    </form>
+  </div>
+
+  <script>
+    // Wrapper that handles expired access token using refresh token
+    async function authFetch(url, options = {}) {
+      let access = localStorage.getItem('access');
+      const refresh = localStorage.getItem('refresh');
+
+      if (!access || !refresh) {
+        alert("Session expired. Please log in again.");
+        window.location.href = "/";
+        return;
+      }
+
+      if (!options.headers) options.headers = {};
+      options.headers['Authorization'] = 'Bearer ' + access;
+
+      let response = await fetch(url, options);
+      if (response.status === 401 && refresh) {
+        const tokenRes = await fetch('/api/token/refresh/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh })
+        });
+
+        if (tokenRes.ok) {
+          const data = await tokenRes.json();
+          localStorage.setItem('access', data.access);
+          options.headers['Authorization'] = 'Bearer ' + data.access;
+
+          return await fetch(url, options); // Retry with new access token
+        } else {
+          alert("Session expired. Please log in again.");
+          localStorage.clear();
+          window.location.href = "/";
+          return;
+        }
+      }
+
+      return response;
+    }
+
+    document.getElementById('emailForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const recipients = document.getElementById('recipients').value
+        .split(',')
+        .map(email => email.trim())
+        .filter(email => email.length > 0);
+
+      const subject = document.getElementById('subject').value;
+      const body = document.getElementById('body').value;
+
+      const localTime = document.getElementById('scheduledTime').value;
+      const scheduled_time = new Date(localTime).toISOString(); // UTC ISO format
+
+      const data = {
+        recipients,
+        subject,
+        body,
+        scheduled_time
+      };
+
+      try {
+        const response = await authFetch('/api/scheduled-emails/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.detail || 'Error scheduling email');
+
+        alert('Email scheduled successfully!');
+      } catch (err) {
+        alert('Failed to schedule email: ' + err.message);
+      }
+    });
+  </script>
+</body>
+</html>

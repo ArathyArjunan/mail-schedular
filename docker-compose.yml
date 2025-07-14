@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    command: >
+      sh -c "python manage.py migrate &&
+             gunicorn TaskMailer.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    restart: always
+
+  db:
+    image: postgres:16
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: taskmailer
+      POSTGRES_USER: taskmailer_user
+      POSTGRES_PASSWORD: taskmailer_pass
+    restart: always
+
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
+
+  celery:
+    build: .
+    command: celery -A TaskMailer worker -l info
+    volumes:
+      - .:/code
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - .env
+    restart: always
+
+volumes:
+  postgres_data:

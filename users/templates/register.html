@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    async function handleRegister(event) {
+      event.preventDefault();
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const profilePic = document.getElementById('profile').files[0];
+
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('password', password);
+      formData.append('profile_picture_file', profilePic);
+
+      const response = await fetch('/api/register/', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        document.getElementById('otp-section').classList.remove('hidden');
+        alert("OTP sent to email");
+      } else {
+        alert(data.error || "Registration failed");
+      }
+    }
+
+    async function verifyOTP(event) {
+      event.preventDefault();
+      const email = document.getElementById('email').value;
+      const otp = document.getElementById('otp').value;
+
+      const response = await fetch('/api/verify-otp/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        alert("Email verified!");
+        window.location.href = '/dashboard/';
+      } else {
+        alert(data.error || "OTP verification failed");
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+    <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">Register</h2>
+    <form onsubmit="handleRegister(event)" class="space-y-4">
+      <div>
+        <label>Email</label>
+        <input type="email" id="email" required class="w-full px-4 py-2 border rounded-lg">
+      </div>
+      <div>
+        <label>Password</label>
+        <input type="password" id="password" required class="w-full px-4 py-2 border rounded-lg">
+      </div>
+      <div>
+        <label>Profile Picture</label>
+        <input type="file" id="profile" accept="image/*" required class="w-full">
+      </div>
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Register</button>
+    </form>
+
+    <div id="otp-section" class="mt-6 hidden">
+      <h3 class="text-center text-lg font-medium text-gray-800 mb-2">Enter OTP</h3>
+      <form onsubmit="verifyOTP(event)" class="space-y-4">
+        <input type="text" id="otp" required placeholder="Enter OTP"
+               class="w-full px-4 py-2 border rounded-lg">
+        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700">Verify OTP</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>View Scheduled Emails</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-green-100 min-h-screen p-8">
+  <div class="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-xl">
+    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">📬 Scheduled Emails</h2>
+
+    <table class="min-w-full text-sm border-collapse border border-gray-300 shadow-md">
+      <thead class="bg-gray-200">
+        <tr>
+          <th class="px-4 py-3 text-left border">Subject</th>
+          <th class="px-4 py-3 text-left border">Recipients</th>
+          <th class="px-4 py-3 text-left border">Scheduled Time</th>
+          <th class="px-4 py-3 text-left border">Status</th>
+          <th class="px-4 py-3 text-center border">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="emailList" class="bg-white">
+        <!-- Emails will be inserted here -->
+      </tbody>
+    </table>
+
+    <div class="text-center mt-8">
+      <button onclick="window.location.href='/schedule-email.html'" class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
+        ➕ Schedule New
+      </button>
+    </div>
+  </div>
+
+  <script>
+    async function loadEmails() {
+      const res = await fetch('/api/scheduled-emails/', {
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('access')
+        }
+      });
+
+      const emails = await res.json();
+      const tbody = document.getElementById('emailList');
+      tbody.innerHTML = '';
+
+      emails.forEach(email => {
+        const recipients = email.recipients || email.recipients_string || ''; // fallback
+        const status = email.sent ? '✅ Sent' : '⏳ Pending';
+        const scheduledTime = new Date(email.scheduled_time).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+        const row = document.createElement('tr');
+        row.classList.add('border-b', 'hover:bg-gray-50');
+
+        row.innerHTML = `
+          <td class="px-4 py-3 border">${email.subject}</td>
+          <td class="px-4 py-3 border">${recipients}</td>
+          <td class="px-4 py-3 border">${scheduledTime}</td>
+          <td class="px-4 py-3 border font-semibold ${email.sent ? 'text-green-600' : 'text-orange-600'}">${status}</td>
+          <td class="px-4 py-3 text-center border space-x-2">
+            <button onclick="deleteEmail(${email.id})" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
+            <button onclick="editEmail(${email.id}, '${email.subject}', '${recipients}', \`${email.body}\`, '${email.scheduled_time}')" class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">Edit</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    async function deleteEmail(id) {
+      if (!confirm('Are you sure you want to delete this email?')) return;
+
+      const res = await fetch(`/api/scheduled-emails/${id}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('access')
+        }
+      });
+
+      if (res.ok) {
+        alert('Email deleted');
+        loadEmails();
+      } else {
+        alert('Failed to delete email');
+      }
+    }
+
+    function editEmail(id, subject, recipients, body, scheduled_time) {
+      const newSubject = prompt('Edit Subject:', subject);
+      const newRecipients = prompt('Edit Recipients (comma-separated):', recipients);
+      const newBody = prompt('Edit Body:', body);
+      const newTime = prompt('Edit Scheduled Time (YYYY-MM-DDTHH:MM):', scheduled_time.slice(0, 16));
+
+      fetch(`/api/scheduled-emails/${id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + localStorage.getItem('access')
+        },
+        body: JSON.stringify({
+          subject: newSubject,
+          recipients: newRecipients.split(',').map(r => r.trim()),
+          body: newBody,
+          scheduled_time: newTime
+        })
+      }).then(res => {
+        if (res.ok) {
+          alert('Email updated');
+          loadEmails();
+        } else {
+          alert('Update failed');
+        }
+      });
+    }
+
+    loadEmails();
+  </script>
+</body>
+</html>
