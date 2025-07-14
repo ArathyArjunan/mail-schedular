@@ -36,6 +36,9 @@ TaskMailer/
 │ ├── views.py
 │ ├── serializers.py
 │ └── utils/
+|  ├── generate_otp.py
+|  ├── s3_upload.py
+|  ├── task.py
 ├── templates/
 │ ├── index.html
 │ ├── register.html
