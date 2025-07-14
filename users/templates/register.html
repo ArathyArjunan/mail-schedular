@@ -45,7 +45,6 @@
       const data = await response.json();
       if (response.ok) {
         alert("Email verified!");
-        window.location.href = '/dashboard/';
       } else {
         alert(data.error || "OTP verification failed");
       }
