@@ -9,7 +9,7 @@ def upload_to_s3(file):
                       region_name=settings.AWS_S3_REGION_NAME)
 
     key = f"profile_pictures/{uuid.uuid4()}.jpg"
-    s3.upload_fileobj(file, settings.AWS_STORAGE_BUCKET_NAME, key)  # 🔥 Removed ExtraArgs
+    s3.upload_fileobj(file, settings.AWS_STORAGE_BUCKET_NAME, key)  
     return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{key}"
 
 
