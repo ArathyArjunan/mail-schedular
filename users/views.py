@@ -80,6 +80,9 @@ class OTPVerifyView(APIView):
 
 
 class UpdateProfilePictureView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+
     def put(self, request):
         serializer = UpdateProfilePictureSerializer(data=request.data)
         if serializer.is_valid():
@@ -89,9 +92,12 @@ class UpdateProfilePictureView(APIView):
             request.user.profile_picture = url
             request.user.save()
 
-            return Response({'profile_picture': url, 'message': 'Profile picture updated successfully'}, status=200)
+            return Response({
+                'profile_picture': url,
+                'message': 'Profile picture updated successfully'
+            }, status=status.HTTP_200_OK)
 
-        return Response(serializer.errors, status=400)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class UserDetailView(APIView):
     permission_classes = [permissions.IsAuthenticated]
