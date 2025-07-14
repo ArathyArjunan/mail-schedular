@@ -154,8 +154,7 @@
     localStorage.removeItem('access');
     localStorage.removeItem('refresh');
     alert('Logged out successfully!');
-    window.location.href = '/';  // Or wherever your login page is
-
+    window.location.href = '/';  
   } catch (err) {
     alert('Error during logout: ' + err.message);
   }
