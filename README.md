@@ -11,7 +11,7 @@ TaskMailer is a Django-based backend application that allows users to register u
 - 🖼️ Upload Profile Picture to AWS S3
 - 📅 Schedule Emails for Future Delivery
 - 📬 Celery Task Queue + Redis for Asynchronous Sending
-- 🗂️ API Documentation via Swagger
+- 🗂️ API Documentation via Postman
 - 🐳 Fully Dockerized (PostgreSQL + Redis + Celery + Django)
 
 ---
@@ -24,7 +24,7 @@ TaskMailer is a Django-based backend application that allows users to register u
 - **Database:** PostgreSQL
 - **File Storage:** AWS S3
 - **Containerization:** Docker & Docker Compose
-- **API Docs:** drf-yasg (Swagger)
+- **API Docs:** postman
 
 ---
 
@@ -78,6 +78,9 @@ REDIS_URL=redis://redis:6379/0
 AWS_ACCESS_KEY_ID=your-access-key
 AWS_SECRET_ACCESS_KEY=your-secret-key
 AWS_STORAGE_BUCKET_NAME=your-bucket-name
+# ALSO your email credentials
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
 ###  Build & Run with Docker
 docker-compose up --build
 | Method | Endpoint              | Description                |
