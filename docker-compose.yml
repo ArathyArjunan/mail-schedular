@@ -4,7 +4,8 @@ services:
   web:
     build: .
     command: >
-      sh -c "python manage.py migrate &&
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&
              gunicorn TaskMailer.wsgi:application --bind 0.0.0.0:8000"
     volumes:
       - .:/code
@@ -19,7 +20,6 @@ services:
 
   db:
     image: postgres:16
-
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
@@ -30,9 +30,9 @@ services:
 
   redis:
     image: redis:7
-    restart: always
     ports:
       - "6379:6379"
+    restart: always
 
   celery:
     build: .
